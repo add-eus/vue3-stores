@@ -1,4 +1,3 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type {
     User as UserFirebase,
@@ -28,8 +27,8 @@ import {
 } from "firebase/auth";
 import { UserImpl } from "@firebase/auth/internal";
 
-import { useFirebase } from "addeus-common-library/stores/firebase";
-import { until } from "@vueuse/core";
+import { useFirebase } from "@addeus/web-utils/src/firebase";
+import { createGlobalState, until } from "@vueuse/core";
 
 export type UserData = Record<string, any> | null;
 
@@ -37,7 +36,7 @@ interface User extends UserFirebase {
     reloadUserInfo?: any;
 }
 
-export const useUserSession = defineStore("userSession", () => {
+export const useUserSession = createGlobalState(() => {
     const firebase = useFirebase();
 
     const auth = firebase.auth;
@@ -272,14 +271,3 @@ export const useUserSession = defineStore("userSession", () => {
         resetPassword,
     };
 });
-
-/**
- * Pinia supports Hot Module replacement so you can edit your stores and
- * interact with them directly in your app without reloading the page.
- *
- * @see https://pinia.esm.dev/cookbook/hot-module-replacement.html
- * @see https://vitejs.dev/guide/api-hmr.html
- */
-if (import.meta.hot) {
-    import.meta.hot.accept(acceptHMRUpdate(useUserSession, import.meta.hot));
-}

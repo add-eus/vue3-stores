@@ -1,8 +1,8 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
+import { createGlobalState } from "@vueuse/core";
 import type { Component, RendererNode, VNode } from "vue";
 import { render, createVNode, getCurrentInstance } from "vue";
 
-export const useComponent = defineStore("component", () => {
+export const useComponent = createGlobalState(() => {
     const instance = getCurrentInstance();
     if (!instance) throw new Error("No instance found");
 
@@ -35,14 +35,3 @@ export const useComponent = defineStore("component", () => {
         },
     };
 });
-
-/**
- * Pinia supports Hot Module replacement so you can edit your stores and
- * interact with them directly in your app without reloading the page.
- *
- * @see https://pinia.esm.dev/cookbook/hot-module-replacement.html
- * @see https://vitejs.dev/guide/api-hmr.html
- */
-if (import.meta.hot) {
-    import.meta.hot.accept(acceptHMRUpdate(useComponent, import.meta.hot));
-}

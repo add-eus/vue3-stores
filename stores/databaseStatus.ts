@@ -1,9 +1,9 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { ref as vRef } from "vue";
 import type { Ref } from "vue";
 import { getDatabase, ref, onValue } from "firebase/database";
+import { createGlobalState } from "@vueuse/core";
 
-export const useDatabaseStatus = defineStore("dbStatus", () => {
+export const useDatabaseStatus = createGlobalState(() => {
     const isOnline: Ref<Boolean | null> = vRef(null);
 
     const db = getDatabase();
@@ -16,14 +16,3 @@ export const useDatabaseStatus = defineStore("dbStatus", () => {
         isOnline,
     };
 });
-
-/**
- * Pinia supports Hot Module replacement so you can edit your stores and
- * interact with them directly in your app without reloading the page.
- *
- * @see https://pinia.esm.dev/cookbook/hot-module-replacement.html
- * @see https://vitejs.dev/guide/api-hmr.html
- */
-if (import.meta.hot) {
-    import.meta.hot.accept(acceptHMRUpdate(useDatabaseStatus, import.meta.hot));
-}

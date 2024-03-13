@@ -1,4 +1,4 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
+import { createGlobalState } from "@vueuse/core";
 
 const navigatorVibrate =
     navigator.vibrate ||
@@ -10,7 +10,7 @@ const enabled = !!navigatorVibrate;
 
 // calls to navigatorVibrate always bound to global navigator object
 
-export const useHaptic = defineStore("haptic", () => {
+export const useHaptic = createGlobalState(() => {
     return {
         vibrate(tempo = 5) {
             if (enabled) {
@@ -21,14 +21,3 @@ export const useHaptic = defineStore("haptic", () => {
         },
     };
 });
-
-/**
- * Pinia supports Hot Module replacement so you can edit your stores and
- * interact with them directly in your app without reloading the page.
- *
- * @see https://pinia.esm.dev/cookbook/hot-module-replacement.html
- * @see https://vitejs.dev/guide/api-hmr.html
- */
-if (import.meta.hot) {
-    import.meta.hot.accept(acceptHMRUpdate(useHaptic, import.meta.hot));
-}

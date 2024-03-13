@@ -1,4 +1,4 @@
-import sleep from "../utils/sleep";
+import sleep from "@addeus/web-utils/src/sleep";
 import { useComponent } from "./component";
 
 export function usePrint() {

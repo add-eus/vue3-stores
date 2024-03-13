@@ -1,4 +1,3 @@
-import { acceptHMRUpdate } from "pinia";
 import { ref, toRaw } from "vue";
 import {
     ref as refDatabase,
@@ -9,7 +8,7 @@ import {
     get as getDatabase,
     remove as removeDatabase,
 } from "firebase/database";
-import { useFirebase } from "./firebase";
+import { useFirebase } from "@addeus/web-utils/src/firebase";
 
 export const useDatabase = (path: string, options = {}) => {
     const firebase = useFirebase();
@@ -60,15 +59,4 @@ export async function removeFromPath(path) {
     await removeDatabase(ref);
     const r = await getDatabase(ref.parent);
     return r.val();
-}
-
-/**
- * Pinia supports Hot Module replacement so you can edit your stores and
- * interact with them directly in your app without reloading the page.
- *
- * @see https://pinia.esm.dev/cookbook/hot-module-replacement.html
- * @see https://vitejs.dev/guide/api-hmr.html
- */
-if (import.meta.hot) {
-    import.meta.hot.accept(acceptHMRUpdate(useDatabase, import.meta.hot));
 }
