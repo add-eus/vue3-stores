@@ -13,7 +13,7 @@
   "author": "mallanic <maxime@allanic.me>",
   "license": "ISC",
   "dependencies": {
-    "@addeus/web-utils": "bitbucket:addeus/web-utils#master",
+    "@addeus/web-utils": "github:add-eus/web-utils#master",
     "@firebase/auth": "^1.6.1",
     "@vee-validate/rules": "^4.12.6",
     "@vueuse/core": "^10.9.0",
@@ -23,5 +23,8 @@
     "uuid": "^9.0.1",
     "vee-validate": "^4.12.6",
     "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@addeus/development-environment": "github:add-eus/development-environment#master"
   }
 }
