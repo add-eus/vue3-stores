@@ -34,6 +34,9 @@ function transformOptionsFromNamespaces(
 }
 
 export function translate(options: any, component: any, values?: any) {
+    const t = component.appContext.app.config.globalProperties.$t || ((text) => {
+        return text;
+    });
     if (isRef(options)) {
         const translated = ref("");
         let stop: () => void | undefined;
@@ -49,6 +52,7 @@ export function translate(options: any, component: any, values?: any) {
     const translated = ref("");
 
     component.scope.run(() => {
+        
         options = parseOptions(options, values);
 
         const translationNamespaces: string[] = [];
@@ -63,7 +67,7 @@ export function translate(options: any, component: any, values?: any) {
             try {
                 const unrefValues = resolveUnref(options.values);
 
-                translated.value = component.appContext.app.config.globalProperties.$t(
+                translated.value = t(
                     transformedOptions.path,
                     unrefValues,
                 );
