@@ -1,9 +1,10 @@
 import { resolveUnref, syncRef } from "@vueuse/core";
 import type { Ref } from "vue";
-import { getCurrentInstance, isRef, ref, watch } from "vue";
+import { getCurrentInstance, isRef, ref, watch, onMounted, computed } from "vue";
+import { useI18n } from 'vue-i18n';
 
 function parseOptions(options: any | string, values?: any): any {
-    if (typeof options === "string")
+    if (typeof options === "string" || isRef(options))
         options = {
             path: options,
         };
@@ -22,21 +23,20 @@ function transformOptionsFromNamespaces(
     });
 
     const newOptions = { ...options };
-    if (options.path.startsWith(".") === true) {
+    const path = resolveUnref(newOptions.path);
+    if (path.startsWith(".") === true) {
         let finalNamespace = "";
         for (let i = 0; i < namespaces.length; i++) {
             finalNamespace = namespaces[i] + finalNamespace;
             if (!namespaces[i].startsWith(".")) break;
         }
-        newOptions.path = finalNamespace + options.path;
+        newOptions.path = finalNamespace + path;
     }
     return newOptions;
 }
 
 export function translate(options: any, component: any, values?: any) {
-    const t = component.appContext.app.config.globalProperties.$t || ((text) => {
-        return text;
-    });
+    
     if (isRef(options)) {
         const translated = ref("");
         let stop: () => void | undefined;
@@ -52,7 +52,6 @@ export function translate(options: any, component: any, values?: any) {
     const translated = ref("");
 
     component.scope.run(() => {
-        
         options = parseOptions(options, values);
 
         const translationNamespaces: string[] = [];
@@ -64,7 +63,13 @@ export function translate(options: any, component: any, values?: any) {
         let transformedOptions;
 
         function translateInScope() {
+
             try {
+                const t = component.appContext.app.config.globalProperties.$t || ((text) => {
+                    return text;
+                });
+                
+
                 const unrefValues = resolveUnref(options.values);
 
                 translated.value = t(
@@ -131,14 +136,66 @@ export function setTranslateNamespace(path: string | Ref<string>, instance?: any
     } else instance.translationNamespace.value = path;
 }
 
-export const useTranslate = function () {
+export const useTranslate = function (options: any, values?: any) {
     const instance = getCurrentInstance();
-    return {
-        translate(options: any, values?: any) {
-            return translate(options, instance, values);
-        },
-        setTranslateNamespace(path: string) {
-            return setTranslateNamespace(path, instance);
-        },
-    };
+    
+    if (options === undefined) {
+        return {
+            translate(options: any, values?: any) {
+                return translate(options, instance, values);
+            },
+            setTranslateNamespace(path: string) {
+                return setTranslateNamespace(path, instance);
+            },
+        };
+    }
+
+    const { t } = useI18n();
+
+    return computed(() => {
+        options = parseOptions(options, values);
+
+        const translationNamespaces: string[] = [];
+ 
+        let parentComponent: any = {
+            parent: instance,
+        };
+        let index: number = 0;
+        let transformedOptions;
+
+        while ((parentComponent = parentComponent.parent) !== null) {
+            const currentIndex: number = index;
+            if (parentComponent.translationNamespace !== undefined) {
+                translationNamespaces[currentIndex] =
+                    parentComponent.translationNamespace.value;
+                const currentComponent = parentComponent;
+
+                if (
+                    currentComponent.translationNamespace === undefined ||
+                    currentComponent.translationNamespace.value === undefined
+                ) {
+                    return;
+                }
+                translationNamespaces[currentIndex] =
+                    currentComponent.translationNamespace.value;
+                
+            }
+
+            index++;
+        }
+
+        transformedOptions = transformOptionsFromNamespaces(
+            options,
+            translationNamespaces,
+        );
+
+        const unrefValues = resolveUnref(options.values);
+
+        return t(
+            transformedOptions.path,
+            unrefValues,
+        );
+    });
+
+
 };

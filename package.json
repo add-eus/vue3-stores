@@ -18,11 +18,13 @@
     "@vee-validate/rules": "^4.12.6",
     "@vueuse/core": "^10.9.0",
     "iso-country-currency": "^0.7.2",
+    "moment": "^2.30.1",
     "moment-with-locales-es6": "github:maximeallanic/moment-with-locales-es6#master",
     "qrcode": "^1.5.3",
     "uuid": "^9.0.1",
     "vee-validate": "^4.12.6",
-    "vue": "^3.4.21"
+    "vue": "^3.4.21",
+    "vue-i18n": "^9.3.0-beta.24"
   },
   "devDependencies": {
     "@addeus/development-environment": "github:add-eus/development-environment#master"
