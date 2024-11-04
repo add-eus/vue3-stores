@@ -1,4 +1,4 @@
-import { useFirebase } from "@addeus/web-utils/firebase";
+import { useFirebase } from "@addeus/web-utils/src/firebase";
 import { httpsCallable as firebaseHttpsCallable } from "firebase/functions";
 
 export async function httpsOpen(path: string, args: { [name: string]: string | number }) {
