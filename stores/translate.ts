@@ -2,6 +2,7 @@ import { resolveUnref, syncRef } from "@vueuse/core";
 import type { Ref } from "vue";
 import { getCurrentInstance, isRef, ref, watch, onMounted, computed } from "vue";
 import { useI18n } from 'vue-i18n';
+import type { ComputedRef } from "vue";
 
 function parseOptions(options: any | string, values?: any): any {
     if (typeof options === "string" || isRef(options))
@@ -60,12 +61,12 @@ export function translate(options: any, component: any, values?: any) {
             parent: component,
         };
         let index: number = 0;
-        let transformedOptions;
+        let transformedOptions: { path: any; };
 
         function translateInScope() {
 
             try {
-                const t = component.appContext.app.config.globalProperties.$t || ((text) => {
+                const t = component.appContext.app.config.globalProperties.$t || ((text: any) => {
                     return text;
                 });
                 
@@ -136,9 +137,26 @@ export function setTranslateNamespace(path: string | Ref<string>, instance?: any
     } else instance.translationNamespace.value = path;
 }
 
-export const useTranslate = function (options: any, values?: any) {
+// Définition des types pour les options de traduction
+interface TranslateOptions {
+    path: string;
+    values?: Record<string, any>;
+  }
+  
+type TranslateInput = string | TranslateOptions;
+
+// Surcharges de la fonction useTranslate
+export function useTranslate(): {
+    translate: (options: TranslateInput, values?: Record<string, any>) => Ref<string>;
+    setTranslateNamespace: (path: string) => void;
+  };
+  
+export function useTranslate(options: TranslateInput, values?: Record<string, any>): ComputedRef<string>;
+
+  
+export function useTranslate(options?: TranslateInput, values?: Record<string, any>) {
     const instance = getCurrentInstance();
-    
+
     if (options === undefined) {
         return {
             translate(options: any, values?: any) {
@@ -156,12 +174,12 @@ export const useTranslate = function (options: any, values?: any) {
         options = parseOptions(options, values);
 
         const translationNamespaces: string[] = [];
- 
+
         let parentComponent: any = {
             parent: instance,
         };
         let index: number = 0;
-        let transformedOptions;
+        let transformedOptions: { path: any; };
 
         while ((parentComponent = parentComponent.parent) !== null) {
             const currentIndex: number = index;
@@ -174,11 +192,10 @@ export const useTranslate = function (options: any, values?: any) {
                     currentComponent.translationNamespace === undefined ||
                     currentComponent.translationNamespace.value === undefined
                 ) {
-                    return;
+                    return "";
                 }
                 translationNamespaces[currentIndex] =
                     currentComponent.translationNamespace.value;
-                
             }
 
             index++;
@@ -196,6 +213,4 @@ export const useTranslate = function (options: any, values?: any) {
             unrefValues,
         );
     });
-
-
 };
