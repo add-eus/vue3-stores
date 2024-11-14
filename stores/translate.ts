@@ -1,8 +1,9 @@
-import { resolveUnref, syncRef } from "@vueuse/core";
+import { resolveUnref, syncRef, MaybeRef } from "@vueuse/core";
 import type { Ref } from "vue";
-import { getCurrentInstance, isRef, ref, watch, onMounted, computed } from "vue";
+import { getCurrentInstance, isRef, ref, watch, onMounted, computed, toValue } from "vue";
 import { useI18n } from 'vue-i18n';
 import type { ComputedRef } from "vue";
+import { tr } from "date-fns/locale";
 
 function parseOptions(options: any | string, values?: any): any {
     if (typeof options === "string" || isRef(options))
@@ -137,13 +138,57 @@ export function setTranslateNamespace(path: string | Ref<string>, instance?: any
     } else instance.translationNamespace.value = path;
 }
 
+function transformTranslation(options, instance, t) {
+    
+
+    const translationNamespaces: string[] = [];
+
+    let parentComponent: any = {
+        parent: instance,
+    };
+    let index: number = 0;
+    let transformedOptions: { path: any; };
+
+    while ((parentComponent = parentComponent.parent) !== null) {
+        const currentIndex: number = index;
+        if (parentComponent.translationNamespace !== undefined) {
+            translationNamespaces[currentIndex] =
+                parentComponent.translationNamespace.value;
+            const currentComponent = parentComponent;
+
+            if (
+                currentComponent.translationNamespace === undefined ||
+                currentComponent.translationNamespace.value === undefined
+            ) {
+                return "";
+            }
+            translationNamespaces[currentIndex] =
+                currentComponent.translationNamespace.value;
+        }
+
+        index++;
+    }
+
+    transformedOptions = transformOptionsFromNamespaces(
+        options,
+        translationNamespaces,
+    );
+
+    const unrefValues = resolveUnref(options.values);
+
+    return t(
+        transformedOptions.path,
+        unrefValues,
+    );
+}
+
 // Définition des types pour les options de traduction
 interface TranslateOptions {
     path: string;
     values?: Record<string, any>;
   }
   
-type TranslateInput = string | TranslateOptions;
+type TranslateInput = MayBeRef<string | string[]> | TranslateOptions;
 
 // Surcharges de la fonction useTranslate
 export function useTranslate(): {
@@ -171,46 +216,17 @@ export function useTranslate(options?: TranslateInput, values?: Record<string, a
     const { t } = useI18n();
 
     return computed(() => {
-        options = parseOptions(options, values);
-
-        const translationNamespaces: string[] = [];
-
-        let parentComponent: any = {
-            parent: instance,
-        };
-        let index: number = 0;
-        let transformedOptions: { path: any; };
-
-        while ((parentComponent = parentComponent.parent) !== null) {
-            const currentIndex: number = index;
-            if (parentComponent.translationNamespace !== undefined) {
-                translationNamespaces[currentIndex] =
-                    parentComponent.translationNamespace.value;
-                const currentComponent = parentComponent;
-
-                if (
-                    currentComponent.translationNamespace === undefined ||
-                    currentComponent.translationNamespace.value === undefined
-                ) {
-                    return "";
-                }
-                translationNamespaces[currentIndex] =
-                    currentComponent.translationNamespace.value;
-            }
-
-            index++;
+        
+        if (Array.isArray(toValue(options))) {
+            return toValue(options).map((option) => {
+                let options = parseOptions(option, values);
+                return transformTranslation(options, instance, t);
+            });
         }
-
-        transformedOptions = transformOptionsFromNamespaces(
-            options,
-            translationNamespaces,
-        );
-
-        const unrefValues = resolveUnref(options.values);
-
-        return t(
-            transformedOptions.path,
-            unrefValues,
-        );
+        else {
+            let options = parseOptions(options, values);
+            return transformTranslation(options, instance, t);
+        }
+        
     });
 };
