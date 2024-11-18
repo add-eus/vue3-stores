@@ -221,8 +221,8 @@ export function useTranslate(options?: TranslateInput, values?: Record<string, a
             
             if (Array.isArray(toValue(options))) {
                 return toValue(options).map((option) => {
-                    let options = parseOptions(option, values);
-                    return transformTranslation(options, instance, t);
+                    let parsedOptions = parseOptions(option, values);
+                    return transformTranslation(parsedOptions, instance, t);
                 });
             }
             else {
