@@ -201,6 +201,7 @@ export function useTranslate(options: TranslateInput, values?: Record<string, an
   
 export function useTranslate(options?: TranslateInput, values?: Record<string, any>) {
     const instance = getCurrentInstance();
+    console.log(instance);
 
     if (options === undefined) {
         return {
@@ -216,17 +217,22 @@ export function useTranslate(options?: TranslateInput, values?: Record<string, a
     const { t } = useI18n();
 
     return computed(() => {
-        
-        if (Array.isArray(toValue(options))) {
-            return toValue(options).map((option) => {
-                let options = parseOptions(option, values);
-                return transformTranslation(options, instance, t);
-            });
+        try {
+            
+            if (Array.isArray(toValue(options))) {
+                return toValue(options).map((option) => {
+                    let options = parseOptions(option, values);
+                    return transformTranslation(options, instance, t);
+                });
+            }
+            else {
+                let parsedOptions = parseOptions(options, values);
+                return transformTranslation(parsedOptions, instance, t);
+            }
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error(e);
+            return "";
         }
-        else {
-            let options = parseOptions(options, values);
-            return transformTranslation(options, instance, t);
-        }
-        
     });
 };
