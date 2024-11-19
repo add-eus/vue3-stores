@@ -201,7 +201,6 @@ export function useTranslate(options: TranslateInput, values?: Record<string, an
   
 export function useTranslate(options?: TranslateInput, values?: Record<string, any>) {
     const instance = getCurrentInstance();
-    console.log(instance);
 
     if (options === undefined) {
         return {
