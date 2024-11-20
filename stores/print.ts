@@ -29,9 +29,13 @@ export function usePrint() {
                 return iframe.contentWindow.addEventListener("afterprint", resolve);
             reject("Could not get content window from iframe");
         });
-        iframe.contentWindow.print();
+        if ((window as any).DISABLE_PRINT !== true) {
+            iframe.contentWindow.print();
+        }
         await promise;
-        iframe.remove();
+        if ((window as any).DISABLE_PRINT !== true) {
+            iframe.remove();
+        }
     }
 
     return {
